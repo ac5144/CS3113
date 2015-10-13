@@ -15,6 +15,8 @@
 #include <string>
 #include <ctime>
 
+#define DEF_NUM_ALIENS 15
+
 #ifdef _WINDOWS
 #define RESOURCE_FOLDER ""
 #else
@@ -39,16 +41,20 @@ public:
 	void RenderGame();
 	void RenderGameOver();
 
-	bool playerFired();
-	bool collision(Bullet* b, Entity* e);
-	void checkCollisions();
-
-	void DrawSpriteSheetSprite(int index, int spriteCountX, int spriteCountY, float x, float y);
-	bool aliensDead();
-
 	GLuint LoadTexture(const char* image_path);
 	void DrawText(int fontTexture, std::string text, float size, float spacing);
-
+	void DrawSpriteSheetSprite(int index, int spriteCountX, int spriteCountY, int textureID, float x, float y);
+	
+	bool playerBulletLive();
+	void cleanBullets();
+	void setAliens(std::vector<Entity*>& v, int n = DEF_NUM_ALIENS);
+	void aliensAttack();
+	void aliensMove(float elapsed);
+	bool collision(Bullet* b, Entity* e);
+	void checkCollisions();
+	bool aliensDead();
+	void checkWinStatus();
+	void resetGame();
 private:
 	SDL_Window* displayWindow;
 	SDL_Event event;
@@ -69,8 +75,9 @@ private:
 	GLuint bulletID;
 	GLuint alienID;
 
-	float shoot_interval;
-	float move_interval;
+	float attackInterval;
+	float moveInterval;
+
 	bool win;
 };
 

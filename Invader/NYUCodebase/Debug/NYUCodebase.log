@@ -1,47 +1,16 @@
-﻿Build started 10/12/2015 8:07:37 PM.
-     1>Project "C:\Users\Andrew\Desktop\Invader - Copy\NYUCodebase\NYUCodebase.vcxproj" on node 2 (Build target(s)).
-     1>ClCompile:
-         D:\Visual Studio\VC\bin\CL.exe /c /IC:\SDL2\include /IC:\SDL2_image\include /IC:\glew\include /IC:\SDL2_mixer\include /ZI /nologo /W3 /WX- /sdl /Od /Oy- /D _WINDOWS /D _MBCS /D _MBCS /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt GameApp.cpp main.cpp
-         GameApp.cpp
-     1>c:\users\andrew\desktop\invader - copy\nyucodebase\gameapp.cpp(41): warning C4018: '<' : signed/unsigned mismatch
-     1>c:\users\andrew\desktop\invader - copy\nyucodebase\gameapp.cpp(81): warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
-     1>c:\users\andrew\desktop\invader - copy\nyucodebase\gameapp.cpp(82): warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
-     1>c:\users\andrew\desktop\invader - copy\nyucodebase\gameapp.cpp(114): warning C4018: '<' : signed/unsigned mismatch
-     1>c:\users\andrew\desktop\invader - copy\nyucodebase\gameapp.cpp(124): warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
-     1>c:\users\andrew\desktop\invader - copy\nyucodebase\gameapp.cpp(125): warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
-     1>c:\users\andrew\desktop\invader - copy\nyucodebase\gameapp.cpp(126): warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
-     1>c:\users\andrew\desktop\invader - copy\nyucodebase\gameapp.cpp(127): warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
-     1>c:\users\andrew\desktop\invader - copy\nyucodebase\gameapp.cpp(129): warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
-     1>c:\users\andrew\desktop\invader - copy\nyucodebase\gameapp.cpp(130): warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
-     1>c:\users\andrew\desktop\invader - copy\nyucodebase\gameapp.cpp(131): warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
-     1>c:\users\andrew\desktop\invader - copy\nyucodebase\gameapp.cpp(132): warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
-     1>c:\users\andrew\desktop\invader - copy\nyucodebase\gameapp.cpp(142): warning C4018: '<' : signed/unsigned mismatch
-     1>c:\users\andrew\desktop\invader - copy\nyucodebase\gameapp.cpp(161): warning C4018: '<' : signed/unsigned mismatch
-     1>c:\users\andrew\desktop\invader - copy\nyucodebase\gameapp.cpp(272): warning C4018: '<' : signed/unsigned mismatch
-     1>c:\users\andrew\desktop\invader - copy\nyucodebase\gameapp.cpp(287): warning C4244: 'argument' : conversion from 'time_t' to 'unsigned int', possible loss of data
-     1>c:\users\andrew\desktop\invader - copy\nyucodebase\gameapp.cpp(298): warning C4018: '<' : signed/unsigned mismatch
-     1>c:\users\andrew\desktop\invader - copy\nyucodebase\gameapp.cpp(302): warning C4244: 'argument' : conversion from 'double' to 'float', possible loss of data
-     1>c:\users\andrew\desktop\invader - copy\nyucodebase\gameapp.cpp(350): warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
-     1>c:\users\andrew\desktop\invader - copy\nyucodebase\gameapp.cpp(351): warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
-     1>c:\users\andrew\desktop\invader - copy\nyucodebase\gameapp.cpp(372): warning C4018: '<' : signed/unsigned mismatch
-     1>c:\users\andrew\desktop\invader - copy\nyucodebase\gameapp.cpp(386): warning C4018: '<' : signed/unsigned mismatch
-     1>c:\users\andrew\desktop\invader - copy\nyucodebase\gameapp.cpp(391): warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
-     1>c:\users\andrew\desktop\invader - copy\nyucodebase\gameapp.cpp(461): warning C4018: '<' : signed/unsigned mismatch
-         Generating Code...
-         Compiling...
-         main.cpp
-         Generating Code...
-       Link:
-         D:\Visual Studio\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\Andrew\Desktop\Invader - Copy\Debug\NYUCodebase.exe" /INCREMENTAL /NOLOGO /LIBPATH:C:\SDL2_mixer\lib\x86 /LIBPATH:C:\SDL2\lib\x86 /LIBPATH:C:\SDL2_image\lib\x86 /LIBPATH:C:\glew\lib\Release\Win32 SDL2.lib SDL2_mixer.lib glew32.lib SDL2main.lib SDL2_image.lib OpenGL32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:\Users\Andrew\Desktop\Invader - Copy\Debug\NYUCodebase.pdb" /SUBSYSTEM:WINDOWS /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\Andrew\Desktop\Invader - Copy\Debug\NYUCodebase.lib" /MACHINE:X86 Debug\Bullet.obj
+﻿Build started 10/12/2015 11:39:54 PM.
+     1>Project "C:\Users\Andrew\Desktop\Invader\NYUCodebase\NYUCodebase.vcxproj" on node 2 (Build target(s)).
+     1>Link:
+         D:\Visual Studio\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\Andrew\Desktop\Invader\Debug\NYUCodebase.exe" /INCREMENTAL /NOLOGO /LIBPATH:C:\SDL2_mixer\lib\x86 /LIBPATH:C:\SDL2\lib\x86 /LIBPATH:C:\SDL2_image\lib\x86 /LIBPATH:C:\glew\lib\Release\Win32 SDL2.lib SDL2_mixer.lib glew32.lib SDL2main.lib SDL2_image.lib OpenGL32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:\Users\Andrew\Desktop\Invader\Debug\NYUCodebase.pdb" /SUBSYSTEM:WINDOWS /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\Andrew\Desktop\Invader\Debug\NYUCodebase.lib" /MACHINE:X86 Debug\Bullet.obj
          Debug\Entity.obj
          Debug\GameApp.obj
          Debug\main.obj
          Debug\Matrix.obj
          Debug\ShaderProgram.obj
          Debug\Source.obj
-         NYUCodebase.vcxproj -> C:\Users\Andrew\Desktop\Invader - Copy\Debug\NYUCodebase.exe
-     1>Done Building Project "C:\Users\Andrew\Desktop\Invader - Copy\NYUCodebase\NYUCodebase.vcxproj" (Build target(s)).
+         NYUCodebase.vcxproj -> C:\Users\Andrew\Desktop\Invader\Debug\NYUCodebase.exe
+     1>Done Building Project "C:\Users\Andrew\Desktop\Invader\NYUCodebase\NYUCodebase.vcxproj" (Build target(s)).
 
 Build succeeded.
 
-Time Elapsed 00:00:01.25
+Time Elapsed 00:00:00.85

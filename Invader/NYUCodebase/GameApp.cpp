@@ -1,11 +1,9 @@
 #include "GameApp.h"
 
-GameApp::GameApp() : done(false), lastFrameTicks(0.0), win(false)
+GameApp::GameApp() : done(false), lastFrameTicks(0.0), attackInterval(2.0), moveInterval(5.0), win(false)
 {
 	player = new Entity(0.0, -7.5, 1.0, 2.0, PLAYER);
 	state = MAIN_MENU;
-	shoot_interval = 2.0;
-	move_interval = 5.0;
 	Setup();
 }
 
@@ -74,12 +72,12 @@ void GameApp::DrawText(int fontTexture, std::string text, float size, float spac
 	glDisableVertexAttribArray(program->texCoordAttribute);
 }
 
-void GameApp::DrawSpriteSheetSprite(int index, int spriteCountX, int spriteCountY, float x = 0.0, float y = 0.0)
+void GameApp::DrawSpriteSheetSprite(int index, int spriteCountX, int spriteCountY, int textureID, float x = 0.0, float y = 0.0)
 {
-	float u = (float)(((int)index) % spriteCountX) / (float) spriteCountX;
-	float v = (float)(((int)index) / spriteCountX) / (float) spriteCountY;
-	float spriteWidth = 1.0 / (float) spriteCountX;
-	float spriteHeight = 1.0 / (float) spriteCountY;
+	float u = (float)(((int)index) % spriteCountX) / (float)spriteCountX;
+	float v = (float)(((int)index) / spriteCountX) / (float)spriteCountY;
+	float spriteWidth = 1.0 / (float)spriteCountX;
+	float spriteHeight = 1.0 / (float)spriteCountY;
 
 	GLfloat texCoords[] = {
 		u, v + spriteHeight,
@@ -90,7 +88,7 @@ void GameApp::DrawSpriteSheetSprite(int index, int spriteCountX, int spriteCount
 		u + spriteWidth, v + spriteHeight,
 	};
 
-	float vertices[] = { -0.5f, -0.5f, 0.5f, 0.5f, -0.5f, 0.5f, 0.5f, 0.5f, -0.5f, -0.5f, 0.5f, -0.5f };
+	float vertices[] = { -0.75f, -0.75f, 0.75f, 0.75f, -0.75f, 0.75f, 0.75f, 0.75f, -0.75f, -0.75f, 0.75f, -0.75f };
 
 	glVertexAttribPointer(program->positionAttribute, 2, GL_FLOAT, false, 0, vertices);
 	glEnableVertexAttribArray(program->positionAttribute);
@@ -102,77 +100,11 @@ void GameApp::DrawSpriteSheetSprite(int index, int spriteCountX, int spriteCount
 	modelMatrix.Translate(x, y, 0.0);
 	program->setModelMatrix(modelMatrix);
 
-	glBindTexture(GL_TEXTURE_2D, alienID);
+	glBindTexture(GL_TEXTURE_2D, textureID);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 
 	glDisableVertexAttribArray(program->positionAttribute);
 	glDisableVertexAttribArray(program->texCoordAttribute);
-}
-
-bool GameApp::playerFired()
-{
-	for (int i = 0; i < bullets.size(); i++)
-	{
-		if (bullets[i]->getSource()->getType() == PLAYER)
-			return true;
-	}
-	return false;
-}
-
-bool GameApp::collision(Bullet* b, Entity* e)
-{
-	float bulletTop = b->getYposition() + BULLET_HEIGHT / 2.0;
-	float bulletBot = b->getYposition() - BULLET_HEIGHT / 2.0;
-	float bulletLeft = b->getXposition() - BULLET_WIDTH / 2.0;
-	float bulletRight = b->getXposition() + BULLET_WIDTH / 2.0;
-
-	float entityTop = e->getY() + e->getHeight() / 2.0;
-	float entityBot = e->getY() - e->getHeight() / 2.0;
-	float entityLeft = e->getX() - e->getWidth() / 2.0;
-	float entityRight = e->getX() + e->getWidth() / 2.0;
-
-	return !((bulletBot > entityTop) ||
-		(bulletTop < entityBot) ||
-		(bulletLeft > entityRight) ||
-		(bulletRight < entityLeft));
-}
-
-void GameApp::checkCollisions()
-{
-	for (int i = 0; i < bullets.size(); i++)
-	{
-		if (bullets[i]->getSource()->getType() == ALIEN)
-		{
-			if (player->isAlive())
-			{
-				if (collision(bullets[i], player))
-				{
-					player->dies();
-					bullets.erase(bullets.begin() + i);
-					state = GAME_OVER;
-					--i;
-					break;
-				}
-			}
-				
-		}
-		else
-		{
-			for (int j = 0; j < aliens.size(); j++)
-			{
-				if (aliens[j]->isAlive())
-				{
-					if (collision(bullets[i], aliens[j]))
-					{
-						aliens[j]->dies();
-						bullets.erase(bullets.begin() + i);
-						--i;
-						break;
-					}
-				}
-			}
-		}
-	}
 }
 
 void GameApp::Setup()
@@ -187,7 +119,6 @@ void GameApp::Setup()
 
 	glViewport(0, 0, 640, 360);
 
-	//program = new ShaderProgram(RESOURCE_FOLDER"vertex.glsl", RESOURCE_FOLDER"fragment.glsl");
 	program = new ShaderProgram(RESOURCE_FOLDER"vertex_textured.glsl", RESOURCE_FOLDER"fragment_textured.glsl");
 	projectionMatrix.setOrthoProjection(-16.0f, 16.0f, -9.0f, 9.0f, -1.0f, 1.0f);
 
@@ -207,27 +138,14 @@ void GameApp::Setup()
 	bulletID = LoadTexture("bullet.png");
 	alienID = LoadTexture("invaders.png");
 
-	float x = -8.0;
-	float y = 6.0;
-
-	for (int i = 0; i < 15; i++)
-	{
-		aliens.push_back(new Entity (x, y, 0.5, 0.5, ALIEN));
-		x += 4.0;
-		if (i != 0 && (i + 1) % 5 == 0)
-		{
-			x = -8.0;
-			y -= 3.0;
-		}
-	}
+	setAliens(aliens);
 }
 
 void GameApp::ProcessEvents(float elapsed)
 {
 	while (SDL_PollEvent(&event)) {
-		if (event.type == SDL_QUIT || event.type == SDL_WINDOWEVENT_CLOSE) {
+		if (event.type == SDL_QUIT || event.type == SDL_WINDOWEVENT_CLOSE)
 			done = true;
-		}
 
 		const Uint8* keys = SDL_GetKeyboardState(NULL);
 
@@ -240,25 +158,25 @@ void GameApp::ProcessEvents(float elapsed)
 		case GAME_LEVEL:
 			if (keys[SDL_SCANCODE_LEFT])
 			{
-				if (player->getX() > -14.0)
+				if (player->getXposition() > -14.0)
 					player->move_x(-1.0f * elapsed * 100);
 			}
 			else if (keys[SDL_SCANCODE_RIGHT])
 			{
-				if (player->getX() < 14.0)
+				if (player->getXposition() < 14.0)
 					player->move_x(1.0f * elapsed * 100);
 			}
-
-			if (event.type == SDL_KEYDOWN)
+			if (keys[SDL_SCANCODE_SPACE])
 			{
-				if (event.key.keysym.scancode == SDL_SCANCODE_SPACE)
-				{
-					if (!playerFired())
-					{
-						//Shoot Bullet
-						bullets.push_back(new Bullet(player->getX(), player->getY(), player));
-					}
-				}
+				if (!playerBulletLive())
+					player->shoot(bullets);
+			}
+			break;
+		case GAME_OVER:
+			if (keys[SDL_SCANCODE_RETURN] || keys[SDL_SCANCODE_RETURN2])
+			{
+				state = MAIN_MENU;
+				resetGame();
 			}
 			break;
 		}
@@ -269,64 +187,29 @@ void GameApp::Update(float elapsed)
 {
 	ProcessEvents(elapsed);
 
+	if (state == MAIN_MENU || state == GAME_OVER)
+		return;
+
+	attackInterval -= elapsed;
+	moveInterval -= elapsed;
+	if (attackInterval <= 0.0)
+	{
+		aliensAttack();
+		attackInterval = 2.0;
+	}
+	if (moveInterval <= 0.0)
+	{
+		aliensMove(elapsed);
+		moveInterval = 5.0;
+	}
+
+	cleanBullets();
 	for (int i = 0; i < bullets.size(); i++)
-	{
-		if (bullets[i]->getTTL() <= 0.0)
-		{
-			bullets.erase(bullets.begin() + i);
-			--i;
-		}
-		else
-			bullets[i]->move(elapsed);
-	}
-	
-	shoot_interval -= elapsed;
-	move_interval -= elapsed;
-	if (shoot_interval <= 0.0)
-	{
-		srand(time(NULL));
-		int shoot = rand() % 15;
-		while (!aliens[shoot]->isAlive())
-		{
-			shoot = rand() % 15;
-		}
-		bullets.push_back(new Bullet(aliens[shoot]->getX(), aliens[shoot]->getY(), aliens[shoot]));
-		shoot_interval = 2.0;
-	}
-	if (move_interval <= 0.0)
-	{
-		for (int i = 0; i < aliens.size(); i++)
-		{
-			if (aliens[i]->isAlive())
-			{
-				aliens[i]->move_y(-elapsed * 50.0);
-			}
-		}
-		move_interval = 5.0;
-	}
+		bullets[i]->move_y(elapsed);
 
 	checkCollisions();
 
-	//Player Loses
-	if (!player->isAlive())
-		state = GAME_OVER;
-	for (int i = aliens.size() - 1; i >= 0; i--)
-	{
-		if (aliens[i]->isAlive())
-		{
-			if ((aliens[i]->getY() - aliens[i]->getHeight() / 2.0) < (player->getY() + player->getHeight() / 2.0))
-			{
-				state = GAME_OVER;
-				break;
-			}
-		}
-	}
-	//Player Wins
-	if (aliensDead())
-	{
-		state = GAME_OVER;
-		win = true;
-	}
+	checkWinStatus();
 }
 
 void GameApp::RenderMainMenu()
@@ -345,66 +228,21 @@ void GameApp::RenderMainMenu()
 void GameApp::RenderGame()
 {
 	//Render Player
-	float x = player->getX();
-	float y = player->getY();
-	float h = player->getHeight() / 2.0;
-	float w = player->getWidth() / 2.0;
-
-	float playerCoords[] = { x - w, y - h, x + w, y + h, x - w, y + h, x - w, y - h, x + w, y - h, x + w, y + h };
-
-	glVertexAttribPointer(program->positionAttribute, 2, GL_FLOAT, false, 0, playerCoords);
-	glEnableVertexAttribArray(program->positionAttribute);
-
-	float texCoords[] = { 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f };
-	glVertexAttribPointer(program->texCoordAttribute, 2, GL_FLOAT, false, 0, texCoords);
-	glEnableVertexAttribArray(program->texCoordAttribute);
-
-	modelMatrix.identity();
-	program->setModelMatrix(modelMatrix);
-
-	glBindTexture(GL_TEXTURE_2D, playerID);
-	glDrawArrays(GL_TRIANGLES, 0, 6);
-
-	glDisableVertexAttribArray(program->positionAttribute);
-	glDisableVertexAttribArray(program->texCoordAttribute);
+	player->draw(playerID, program, modelMatrix);
 
 	//Render Aliens
 	for (int i = 0; i < aliens.size(); i++)
-	{
 		if (aliens[i]->isAlive())
-		{
 			if (i < 5)
-				DrawSpriteSheetSprite(0, 2, 3, aliens[i]->getX(), aliens[i]->getY());
+				DrawSpriteSheetSprite(0, 2, 3, alienID, aliens[i]->getXposition(), aliens[i]->getYposition());
 			else if (i < 10)
-				DrawSpriteSheetSprite(2, 2, 3, aliens[i]->getX(), aliens[i]->getY());
+				DrawSpriteSheetSprite(2, 2, 3, alienID, aliens[i]->getXposition(), aliens[i]->getYposition());
 			else
-				DrawSpriteSheetSprite(4, 2, 3, aliens[i]->getX(), aliens[i]->getY());
-		}
-	}
+				DrawSpriteSheetSprite(4, 2, 3, alienID, aliens[i]->getXposition(), aliens[i]->getYposition());
 
 	//Render Bullets
 	for (int i = 0; i < bullets.size(); i++)
-	{
-		float x = bullets[i]->getXposition();
-		float y = bullets[i]->getYposition();
-
-		float bullCoords[] = { x - 0.25, y - 0.25, x + 0.25, y + 0.25, x - 0.25, y + 0.25, x - 0.25, y - 0.25, x + 0.25, y - 0.25, x + 0.25, y + 0.25 };
-
-		glVertexAttribPointer(program->positionAttribute, 2, GL_FLOAT, false, 0, bullCoords);
-		glEnableVertexAttribArray(program->positionAttribute);
-
-		glVertexAttribPointer(program->texCoordAttribute, 2, GL_FLOAT, false, 0, texCoords);
-		glEnableVertexAttribArray(program->texCoordAttribute);
-
-		modelMatrix.identity();
-		program->setModelMatrix(modelMatrix);
-
-		glBindTexture(GL_TEXTURE_2D, bulletID);
-		glDrawArrays(GL_TRIANGLES, 0, 6);
-
-		glDisableVertexAttribArray(program->positionAttribute);
-		glDisableVertexAttribArray(program->texCoordAttribute);
-	}
+		bullets[i]->draw(bulletID, program, modelMatrix);
 }
 
 void GameApp::RenderGameOver()
@@ -450,10 +288,112 @@ bool GameApp::UpdateAndRender()
 	float ticks = (float)SDL_GetTicks() / 1000.0f;
 	float elapsed = ticks - lastFrameTicks;
 	lastFrameTicks = ticks;
-
+	
 	Update(elapsed);
 	Render();
 	return done;
+}
+
+bool GameApp::playerBulletLive()
+{
+	if (bullets.size() == 0)
+		return false;
+	for (int i = 0; i < bullets.size(); i++)
+		if (bullets[i]->getSource()->getType() == PLAYER)
+			return true;
+	return false;
+}
+
+void GameApp::cleanBullets()
+{
+	for (int i = 0; i < bullets.size(); i++)
+		if (bullets[i]->getTTL() <= 0.0)
+		{
+			bullets.erase(bullets.begin() + i);
+			--i;
+		}
+}
+
+void GameApp::setAliens(std::vector<Entity*>& v, int n)
+{
+	float x = -8.0;
+	float y = 6.0;
+
+	for (int i = 0; i < DEF_NUM_ALIENS; i++)
+	{
+		aliens.push_back(new Entity(x, y, 1.5, 1.5, ALIEN));
+		x += 4.0;
+		if (i != 0 && (i + 1) % 5 == 0)
+		{
+			x = -8.0;
+			y -= 3.0;
+		}
+	}
+}
+
+void GameApp::aliensAttack()
+{
+	srand(time(NULL));
+	int i = rand() % 15;
+	while (!aliens[i]->isAlive())
+		i = rand() % 15;
+
+	aliens[i]->shoot(bullets);
+}
+
+void GameApp::aliensMove(float elapsed)
+{
+	for (int i = 0; i < aliens.size(); i++)
+		if (aliens[i]->isAlive())
+			aliens[i]->move_y(-elapsed * 100.0);
+}
+
+bool GameApp::collision(Bullet* b, Entity* e)
+{
+	float bulletTop = b->getYposition() + BULLET_HEIGHT / 2.0;
+	float bulletBot = b->getYposition() - BULLET_HEIGHT / 2.0;
+	float bulletLeft = b->getXposition() - BULLET_WIDTH / 2.0;
+	float bulletRight = b->getXposition() + BULLET_WIDTH / 2.0;
+
+	float entityTop = e->getYposition() + e->getHeight() / 2.0;
+	float entityBot = e->getYposition() - e->getHeight() / 2.0;
+	float entityLeft = e->getXposition() - e->getWidth() / 2.0;
+	float entityRight = e->getXposition() + e->getWidth() / 2.0;
+
+	return !((bulletBot > entityTop) ||
+		(bulletTop < entityBot) ||
+		(bulletLeft > entityRight) ||
+		(bulletRight < entityLeft));
+}
+
+void GameApp::checkCollisions()
+{
+	for (int i = 0; i < bullets.size(); i++)
+		if (bullets[i]->getSource()->getType() == ALIEN)
+		{
+			if (player->isAlive())
+				if (collision(bullets[i], player))
+				{
+					player->dies();
+					bullets.erase(bullets.begin() + i);
+					state = GAME_OVER;
+					--i;
+					break;
+				}
+		}
+			
+		else
+		{
+			for (int j = 0; j < aliens.size(); j++)
+				if (aliens[j]->isAlive())
+					if (collision(bullets[i], aliens[j]))
+					{
+						aliens[j]->dies();
+						bullets.erase(bullets.begin() + i);
+						--i;
+						break;
+					}
+		}
 }
 
 bool GameApp::aliensDead()
@@ -464,3 +404,39 @@ bool GameApp::aliensDead()
 	return true;
 }
 
+void GameApp::checkWinStatus()
+{
+	//Player Loses
+	if (!player->isAlive())
+		state = GAME_OVER;
+	for (int i = aliens.size() - 1; i >= 0; i--)
+	{
+		if (aliens[i]->isAlive())
+		{
+			if ((aliens[i]->getYposition() - aliens[i]->getHeight() / 2.0) < (player->getYposition() + player->getHeight() / 2.0))
+			{
+				state = GAME_OVER;
+				break;
+			}
+		}
+	}
+	//Player Wins
+	if (aliensDead())
+	{
+		state = GAME_OVER;
+		win = true;
+	}
+}
+
+void GameApp::resetGame()
+{
+	delete player;
+	player = new Entity(0.0, -7.5, 1.0, 2.0, PLAYER);
+
+	aliens.clear();
+	setAliens(aliens);
+
+	bullets.clear();
+
+	win = false;
+}
