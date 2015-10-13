@@ -159,12 +159,12 @@ void GameApp::ProcessEvents(float elapsed)
 			if (keys[SDL_SCANCODE_LEFT])
 			{
 				if (player->getXposition() > -14.0)
-					player->move_x(-1.0f * elapsed * 100);
+					player->move_x(-1.0f * elapsed * 100.0);
 			}
 			else if (keys[SDL_SCANCODE_RIGHT])
 			{
 				if (player->getXposition() < 14.0)
-					player->move_x(1.0f * elapsed * 100);
+					player->move_x(1.0f * elapsed * 100.0);
 			}
 			if (keys[SDL_SCANCODE_SPACE])
 			{
