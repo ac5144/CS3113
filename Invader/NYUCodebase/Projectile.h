@@ -12,6 +12,7 @@ public:
 	void move_y(float y);
 
 	float getVelocityY() const;
+
 private:
 	float position_x;
 	float position_y;

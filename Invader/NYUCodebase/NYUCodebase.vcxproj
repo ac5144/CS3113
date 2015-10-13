@@ -74,18 +74,19 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Bullet.cpp" />
     <ClCompile Include="Entity.cpp" />
     <ClCompile Include="GameApp.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Matrix.cpp" />
-    <ClCompile Include="Projectile.cpp" />
     <ClCompile Include="ShaderProgram.cpp" />
+    <ClCompile Include="Source.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Bullet.h" />
     <ClInclude Include="Entity.h" />
     <ClInclude Include="GameApp.h" />
     <ClInclude Include="Matrix.h" />
-    <ClInclude Include="Projectile.h" />
     <ClInclude Include="ShaderProgram.h" />
   </ItemGroup>
   <ItemGroup>
