@@ -20,9 +20,8 @@ public:
 	SheetSprite();
 	SheetSprite(unsigned int textureID, float width, float height, float size);
 
-	void Draw(int index, int spriteCountX, int spriteCountY, ShaderProgram* program, Matrix& modelMatrix);
-	void DrawSpriteSheetSprite(int index, int spriteCountX, int spriteCountY, ShaderProgram* program, Matrix& modelMatrix, float x, float y);
-private:
+	void Draw(int index, int spriteCountX, int spriteCountY, ShaderProgram* program, Matrix& modelMatrix, float x = 0.0, float y = 0.0);
+
 	float size;
 	unsigned int textureID;
 	float width;

@@ -27,22 +27,22 @@ public:
 	GameApp();
 	~GameApp();
 
-	void Setup();
-	void ProcessEvents();
-	void Update(float elapsed);
-	void Render();
-	bool UpdateAndRender();
-
 	GLuint LoadTexture(const char* image_path);
 
+	void buildLevel();
 	void renderTiles();
 	bool readHeader(std::ifstream &stream);
 	bool readLayerData(std::ifstream &stream);
 
 	void scroll();
-	void worldToTileCoordinates(float worldX, float worldY, int *gridX, int *gridY);
-	bool collided();
-	void buildLevel();
+	void playerCollisions();
+
+	void Setup();
+	void ProcessEvents(float elapsed);
+	void Update(float elapsed);
+	void Render();
+	bool UpdateAndRender();
+
 private:
 	SDL_Window* displayWindow;
 	SDL_Event event;
@@ -58,14 +58,10 @@ private:
 	unsigned char** levelData;
 
 	Entity* player;
-
-	int* solids;
+	std::vector<Entity*> blocks;
+	std::vector<int> solids;
 
 	unsigned int tileID;
 	unsigned int playerID;
-
-	std::vector<Entity*> blocks;
-
-	float TILE_SIZE;
 };
 
