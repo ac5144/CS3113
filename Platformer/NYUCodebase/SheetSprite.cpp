@@ -11,7 +11,6 @@ SheetSprite::SheetSprite(unsigned int textureID, float width, float height, floa
 
 void SheetSprite::Draw(int index, int spriteCountX, int spriteCountY, ShaderProgram* program, Matrix& modelMatrix, float x, float y)
 {
-	//glBindTexture(GL_TEXTURE_2D, textureID);
 	float u = (float)(((int)index) % spriteCountX) / (float)spriteCountX;
 	float v = (float)(((int)index) / spriteCountX) / (float)spriteCountY;
 	float spriteWidth = 1.0 / (float)spriteCountX;

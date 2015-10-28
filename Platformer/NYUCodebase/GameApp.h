@@ -29,12 +29,14 @@ public:
 
 	GLuint LoadTexture(const char* image_path);
 
+	void buildPlayer();
 	void buildLevel();
 	void renderTiles();
 	bool readHeader(std::ifstream &stream);
 	bool readLayerData(std::ifstream &stream);
 
 	void scroll();
+	bool isSolid(int c);
 	void playerCollisions();
 
 	void Setup();
@@ -43,7 +45,7 @@ public:
 	void Render();
 	bool UpdateAndRender();
 
-private:
+
 	SDL_Window* displayWindow;
 	SDL_Event event;
 	bool done;

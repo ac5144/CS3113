@@ -1,22 +1,18 @@
 #include "GameApp.h"
 #define TILE_SIZE 1.5f
-#define SOLIDS {0, 1, 2}
 
 GameApp::GameApp() : done(false)
 {
 	Setup();
-	player = new Entity();
-	player->x = 10.0;
-	player->y = -10.0;
-	player->height = 2 * TILE_SIZE;
-	player->width = TILE_SIZE;
-	player->sprite = new SheetSprite(playerID, player->width, player->height, 5.0);
-	player->isStatic = false;
-	player->acceleration_y = -1.0;
+	tileID = LoadTexture("platformertiles.png");
+	buildPlayer();
 	solids = {0, 1, 2, 4, 5, 6, 7, 8, 9, 10, 12, 16, 17, 18, 19, 20};
+	buildLevel();
 }
 
-GameApp::~GameApp() { SDL_Quit(); }
+GameApp::~GameApp() { 
+	SDL_Quit(); 
+}
 
 GLuint GameApp::LoadTexture(const char* image_path)
 {
@@ -36,6 +32,20 @@ GLuint GameApp::LoadTexture(const char* image_path)
 	return textureID;
 }
 
+void GameApp::buildPlayer()
+{
+	playerID = LoadTexture("characters_3.png");
+	player = new Entity();
+	player->x = 7.0;
+	player->y = -17.0;
+	player->height = 2 * TILE_SIZE;
+	player->width = 1.5 * TILE_SIZE;
+	player->sprite = new SheetSprite(playerID, player->width, player->height, 5.0);
+	player->isStatic = false;
+	player->acceleration_y = -10.0;
+	player->friction = 5.0;
+}
+
 void GameApp::buildLevel()
 {
 	std::ifstream tileStream("map1.txt");
@@ -53,18 +63,18 @@ void GameApp::buildLevel()
 			readLayerData(tileStream);
 		}
 	}
-
+	tileStream.close();
 	for (int y = 0; y < mapHeight; y++)
 	{
 		for (int x = 0; x < mapWidth; x++)
 		{
-			if ((int)levelData[y][x] == 1)
+			if (isSolid((int)levelData[y][x]))
 			{
 				blocks.push_back(new Entity());
-				blocks.back()->x = TILE_SIZE * x + TILE_SIZE / 2.0;
-				blocks.back()->y = -TILE_SIZE * y - TILE_SIZE / 2.0;
-				blocks.back()->height = TILE_SIZE / 2.0;
-				blocks.back()->width = TILE_SIZE / 2.0;
+				blocks.back()->x = (TILE_SIZE * x) + (TILE_SIZE / 2.0);
+				blocks.back()->y = (-TILE_SIZE * y) - (TILE_SIZE / 2.0);
+				blocks.back()->height = TILE_SIZE;
+				blocks.back()->width = TILE_SIZE;
 				blocks.back()->isStatic = true;
 			}
 		}
@@ -182,6 +192,16 @@ void GameApp::scroll()
 	program->setViewMatrix(viewMatrix);
 }
 
+bool GameApp::isSolid(int c)
+{
+	for (int i = 0; i < solids.size(); i++)
+	{
+		if (solids[i] == c)
+			return true;
+	}
+	return false;
+}
+
 void GameApp::Setup()
 {
 	SDL_Init(SDL_INIT_VIDEO);
@@ -207,11 +227,6 @@ void GameApp::Setup()
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-	tileID = LoadTexture("platformertiles.png");
-	playerID = LoadTexture("characters_3.png");
-
-	buildLevel();
 }
 
 void GameApp::ProcessEvents(float elapsed)
@@ -219,6 +234,22 @@ void GameApp::ProcessEvents(float elapsed)
 	while (SDL_PollEvent(&event)) {
 		if (event.type == SDL_QUIT || event.type == SDL_WINDOWEVENT_CLOSE) {
 			done = true;
+		}
+		const Uint8* keys = SDL_GetKeyboardState(NULL);
+		if (keys[SDL_SCANCODE_RIGHT])
+		{
+			player->acceleration_x = 12.5;
+		}
+		else if (keys[SDL_SCANCODE_LEFT])
+		{
+			player->acceleration_x = -12.5;
+		}
+		else
+			player->acceleration_x = 0.0;
+		if (keys[SDL_SCANCODE_SPACE])
+		{
+			if (player->collidedBottom)
+				player->velocity_y = 12.5;
 		}
 	}
 }
