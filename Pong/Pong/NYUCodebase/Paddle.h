@@ -12,8 +12,8 @@ public:
 
 	float getPositionY() const;
 
-	void moveUp(float limit);
-	void moveDown(float limit);
+	void moveUp(float limit, float elapsed);
+	void moveDown(float limit, float elapsed);
 
 private:
 	float top;

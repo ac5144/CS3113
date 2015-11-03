@@ -12,22 +12,22 @@ float Paddle::getRightCoord() const { return right; }
 
 float Paddle::getPositionY() const { return position_Y; }
 
-void Paddle::moveUp(float limit) 
+void Paddle::moveUp(float limit, float elapsed)
 {
 	if (position_Y < limit)
 	{
-		position_Y += 0.5;
-		top += 0.5;
-		bot += 0.5;
+		position_Y += 20.0 * elapsed;
+		top += 20.0 * elapsed;
+		bot += 20.0 * elapsed;
 	}
 }
 
-void Paddle::moveDown(float limit)
+void Paddle::moveDown(float limit, float elapsed)
 {
 	if (position_Y > limit)
 	{
-		position_Y -= 0.5;
-		top -= 0.5;
-		bot -= 0.5;
+		position_Y -= 20.0 * elapsed;
+		top -= 20.0 * elapsed;
+		bot -= 20.0 * elapsed;
 	}
 }

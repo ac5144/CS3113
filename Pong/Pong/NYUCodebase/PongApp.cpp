@@ -1,11 +1,14 @@
 #include "PongApp.h"
 
-PongApp::PongApp() : done(false), winner(0)
+PongApp::PongApp() : done(false), winner(0), lastFrameTicks(0.0)
 {
-	PongApp::Setup();
-	PongApp::leftPaddle = new Paddle(1.0, -1.0, -8.0, -7.5);
-	PongApp::rightPaddle = new Paddle(1.0, -1.0, 7.5, 8.0);
-	PongApp::gameBall = new Ball();
+	Setup();
+	leftPaddle = new Paddle(1.0, -1.0, -8.0, -7.5);
+	rightPaddle = new Paddle(1.0, -1.0, 7.5, 8.0);
+	gameBall = new Ball();
+	bumpSound = Mix_LoadWAV("bump.wav");
+	bg = Mix_LoadMUS("mm2.mp3");
+	Mix_PlayMusic(bg, -1);
 }
 
 PongApp::~PongApp()
@@ -32,9 +35,11 @@ void PongApp::Setup()
 	program->setProjectionMatrix(projectionMatrix);
 	program->setViewMatrix(viewMatrix);
 	glUseProgram(program->programID);
+
+	Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 4096);
 }
 
-void PongApp::ProcessEvents()
+void PongApp::ProcessEvents(float elapsed)
 {
 	while (SDL_PollEvent(&event)) {
 		if (event.type == SDL_QUIT || event.type == SDL_WINDOWEVENT_CLOSE) {
@@ -45,33 +50,37 @@ void PongApp::ProcessEvents()
 
 		if (keys[SDL_SCANCODE_UP])
 			//RIGHT PADDLE UP
-			rightPaddle->moveUp(3.5);
+			rightPaddle->moveUp(3.5, elapsed);
 		else if (keys[SDL_SCANCODE_DOWN])
 			//RIGHT PADDLE DOWN
-			rightPaddle->moveDown(-3.5);
+			rightPaddle->moveDown(-3.5, elapsed);
 
 		if (keys[SDL_SCANCODE_W])
 			//LEFT PADDLE UP
-			leftPaddle->moveUp(3.5);
+			leftPaddle->moveUp(3.5, elapsed);
 		else if (keys[SDL_SCANCODE_S])		
 			//LEFT PADDLE DOWN
-			leftPaddle->moveDown(-3.5);
+			leftPaddle->moveDown(-3.5, elapsed);
 	}
 }
 
-void PongApp::Update()
+void PongApp::Update(float elapsed)
 {
 	float BallXDir = gameBall->getPositionX();
 	float BallYDir = gameBall->getPositionY();
 
 	if (BallXDir >= rightPaddle->getLeftCoord() && BallYDir >= rightPaddle->getBotCoord() && BallYDir <= rightPaddle->getTopCoord() ||
 		BallXDir <= leftPaddle->getRightCoord() && BallYDir >= leftPaddle->getBotCoord() && BallYDir <= leftPaddle->getTopCoord())
+	{
+		Mix_PlayChannel(-1, bumpSound, 0);
 		gameBall->inverse_X();
+	}
+		
 
 	if (BallYDir >= 4.5 || BallYDir <= -4.5)
 		gameBall->inverse_Y();
 
-	gameBall->move();
+	gameBall->move(elapsed);
 
 	BallXDir = gameBall->getPositionX();
 	BallYDir = gameBall->getPositionY();
@@ -159,8 +168,12 @@ void PongApp::Render()
 
 bool PongApp::UpdateAndRender()
 {
-	ProcessEvents();
-	Update();
+	float ticks = (float)SDL_GetTicks() / 1000.0f;
+	float elapsed = ticks - lastFrameTicks;
+	lastFrameTicks = ticks;
+
+	ProcessEvents(elapsed);
+	Update(elapsed);
 	Render();
 
 	return done;

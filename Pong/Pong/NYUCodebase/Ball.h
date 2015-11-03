@@ -7,7 +7,7 @@ public:
 	float getPositionX() const;
 	float getPositionY() const;
 
-	void move();
+	void move(float elapsed);
 	void reset();
 
 	void inverse_X();

@@ -11,6 +11,7 @@
 #include "ShaderProgram.h"
 #include "Paddle.h"
 #include "Ball.h"
+#include <SDL_mixer.h>
 
 #ifdef _WINDOWS
 	#define RESOURCE_FOLDER ""
@@ -25,8 +26,8 @@ public:
 	~PongApp();
 
 	void Setup();
-	void ProcessEvents();
-	void Update();
+	void ProcessEvents(float elapsed);
+	void Update(float elapsed);
 	void Render();
 	bool UpdateAndRender();
 private:
@@ -40,6 +41,8 @@ private:
 	Matrix modelMatrix;
 	Matrix viewMatrix;
 
+	float lastFrameTicks;
+
 	Paddle* leftPaddle;
 	Paddle* rightPaddle;
 
@@ -47,5 +50,8 @@ private:
 
 	bool done;
 	int winner;
+
+	Mix_Chunk *bumpSound;
+	Mix_Music *bg;
 };
 
