@@ -48,6 +48,16 @@ void GameApp::ProcessEvents(float elapsed)
 		if (event.type == SDL_QUIT || event.type == SDL_WINDOWEVENT_CLOSE) {
 			done = true;
 		}
+
+		const Uint8* keys = SDL_GetKeyboardState(NULL);
+
+		switch (state)
+		{
+		case MAIN_MENU:
+			if (keys[SDL_SCANCODE_RETURN] || keys[SDL_SCANCODE_RETURN2])
+				state = LEVEL_1;
+			break;
+		}
 	}
 }
 

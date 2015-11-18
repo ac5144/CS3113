@@ -17,7 +17,7 @@
 #else
 #define RESOURCE_FOLDER "NYUCodebase.app/Contents/Resources/"
 #endif
-enum GameState {MAIN_MENU};
+enum GameState {MAIN_MENU, LEVEL_1};
 
 class GameApp
 {
