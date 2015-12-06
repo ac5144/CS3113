@@ -4,9 +4,14 @@ GameApp::GameApp() : done(false)
 {
 	Setup();
 }
+GameApp::~GameApp() 
+{ 
+	Mix_FreeMusic(menuMusic);
+	Mix_FreeMusic(gameMusic);
+	SDL_Quit();
+}
 
-GameApp::~GameApp() { SDL_Quit(); }
-
+// SETUP
 void GameApp::Setup()
 {
 	SDL_Init(SDL_INIT_VIDEO);
@@ -36,12 +41,30 @@ void GameApp::Setup()
 	state = MAIN_MENU;
 
 	fontID = LoadTexture("font1.png");
+	playerID = LoadTexture("ship.png");
+
+	stateSwitched = false;
 
 	Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 4096);
-	menuMusic = Mix_LoadMUS("corneria.mp3");
-	Mix_PlayMusic(menuMusic, -1);
+	menuMusic = Mix_LoadMUS("title.mp3");
+	gameMusic = Mix_LoadMUS("corneria.mp3");
+	changeMusic(menuMusic);
+
+	player = new Entity(0.0, -7.0, 2.0, 2.0, playerID);
 }
 
+//	UPDATE
+void GameApp::Update(float elapsed)
+{
+	ProcessEvents(elapsed);
+	if (stateSwitched)
+	{
+		if (state == LEVEL_1 || state == LEVEL_2)
+			changeMusic(gameMusic);
+
+		stateSwitched = false;
+	}
+}
 void GameApp::ProcessEvents(float elapsed)
 {
 	while (SDL_PollEvent(&event)) {
@@ -55,29 +78,14 @@ void GameApp::ProcessEvents(float elapsed)
 		{
 		case MAIN_MENU:
 			if (keys[SDL_SCANCODE_RETURN] || keys[SDL_SCANCODE_RETURN2])
+			{
 				state = LEVEL_1;
+				stateSwitched = true;
+			}
 			break;
 		}
 	}
 }
-
-void GameApp::Update(float elapsed)
-{
-	ProcessEvents(elapsed);
-}
-
-void GameApp::Render()
-{
-	glClear(GL_COLOR_BUFFER_BIT);
-	switch (state)
-	{
-	case MAIN_MENU:
-		RenderMainMenu();
-		break;
-	}
-	SDL_GL_SwapWindow(displayWindow);
-}
-
 bool GameApp::UpdateAndRender()
 {
 	float ticks = (float)SDL_GetTicks() / 1000.0f;
@@ -89,6 +97,39 @@ bool GameApp::UpdateAndRender()
 	return done;
 }
 
+//	RENDER
+void GameApp::Render()
+{
+	glClear(GL_COLOR_BUFFER_BIT);
+	switch (state)
+	{
+	case MAIN_MENU:
+		RenderMainMenu();
+		break;
+	case LEVEL_1:
+		RenderLevel1();
+		break;
+	}
+	SDL_GL_SwapWindow(displayWindow);
+}
+void GameApp::RenderMainMenu()
+{
+	modelMatrix.identity();
+	modelMatrix.Translate(-12.0, 3.0, 0.0);
+	program->setModelMatrix(modelMatrix);
+	DrawText(fontID, "Space Shooter", 3.5, -1.5);
+
+	modelMatrix.identity();
+	modelMatrix.Translate(-7.0, -1.0, 0.0);
+	program->setModelMatrix(modelMatrix);
+	DrawText(fontID, "Press Enter", 1.5, -0.0);
+}
+void GameApp::RenderLevel1()
+{
+	player->Render(program, modelMatrix);
+}
+
+//	UTILITY
 void GameApp::DrawText(int fontTexture, std::string text, float size, float spacing) {
 	float texture_size = 1.0 / 16.0f;
 	std::vector<float> vertexData;
@@ -123,7 +164,6 @@ void GameApp::DrawText(int fontTexture, std::string text, float size, float spac
 	glDisableVertexAttribArray(program->positionAttribute);
 	glDisableVertexAttribArray(program->texCoordAttribute);
 }
-
 GLuint GameApp::LoadTexture(const char* image_path)
 {
 	SDL_Surface* surface = IMG_Load(image_path);
@@ -141,16 +181,7 @@ GLuint GameApp::LoadTexture(const char* image_path)
 
 	return textureID;
 }
-
-void GameApp::RenderMainMenu()
+void GameApp::changeMusic(Mix_Music *m)
 {
-	modelMatrix.identity();
-	modelMatrix.Translate(-12.0, 3.0, 0.0);
-	program->setModelMatrix(modelMatrix);
-	DrawText(fontID, "Space Shooter", 3.5, -1.5);
-
-	modelMatrix.identity();
-	modelMatrix.Translate(-7.0, -1.0, 0.0);
-	program->setModelMatrix(modelMatrix);
-	DrawText(fontID, "Press Enter", 1.5, -0.0);
+	Mix_PlayMusic(m, -1);
 }
