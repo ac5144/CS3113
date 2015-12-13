@@ -42,6 +42,8 @@ void GameApp::Setup()
 
 	fontID = LoadTexture("font1.png");
 	playerID = LoadTexture("ship.png");
+	asteroidID = LoadTexture("asteroid.png");
+	laserID = LoadTexture("laserBlue04.png");
 
 	stateSwitched = false;
 
@@ -50,20 +52,27 @@ void GameApp::Setup()
 	gameMusic = Mix_LoadMUS("corneria.mp3");
 	changeMusic(menuMusic);
 
-	player = new Entity(0.0, -7.0, 2.0, 2.0, playerID);
+	laserSound = Mix_LoadWAV("laserSound.wav");
+	explosionSound = Mix_LoadWAV("explosion.wav");
+
+	generatePlayer();
+	LoadCutsceneVar();
 }
 
 //	UPDATE
 void GameApp::Update(float elapsed)
 {
 	ProcessEvents(elapsed);
-	if (stateSwitched)
+	if (state == CUTSCENE_1)
 	{
-		if (state == LEVEL_1 || state == LEVEL_2)
-			changeMusic(gameMusic);
-
-		stateSwitched = false;
+		UpdateCutscene1(elapsed);
 	}
+	if (state == LEVEL_1)
+	{
+		UpdateLevel1(elapsed);
+	}
+
+	checkGameOver();
 }
 void GameApp::ProcessEvents(float elapsed)
 {
@@ -79,10 +88,105 @@ void GameApp::ProcessEvents(float elapsed)
 		case MAIN_MENU:
 			if (keys[SDL_SCANCODE_RETURN] || keys[SDL_SCANCODE_RETURN2])
 			{
-				state = LEVEL_1;
+				state = CUTSCENE_1;
 				stateSwitched = true;
 			}
+			if (keys[SDL_SCANCODE_ESCAPE])
+			{
+				done = true;
+			}
 			break;
+		case LEVEL_1:
+			// MVOEMENT
+			if (keys[SDL_SCANCODE_LEFT])
+			{
+				if (player->x >= -10.0)
+					player->vel_x = -7.5;
+			}
+			if (keys[SDL_SCANCODE_RIGHT])
+			{
+				if (player->x <= 10.0)
+					player->vel_x = 7.5;
+			}
+			// SHOOTING
+			if (keys[SDL_SCANCODE_SPACE])
+			{
+				if (player->shootCooldown <= 0.0)
+				{
+					player->shoot(bullets, laserID);
+					Mix_PlayChannel(-1, laserSound, 0);
+					player->shootCooldown = 0.75;
+				}
+			}
+			break;
+		}
+	}
+}
+void GameApp::UpdateLevel1(float elapsed)
+{
+	if (stateSwitched)
+	{
+		// CREATE ENEMIES
+		generateEnemies();
+		stateSwitched = false;
+	}
+
+	// UPDATE AND MOVE PLAYER
+	player->Update(elapsed);
+	player->move_x(elapsed);
+
+	//UPDATE AND MOVE ENEMIES
+	for (int i = 0; i < level1Enemies.size(); i++)
+	{
+		level1Enemies[i]->Update(elapsed);
+		level1Enemies[i]->move_y(elapsed);
+		level1Enemies[i]->expires();
+	}
+
+	// UPDATE AND MOVE BULLETS
+	for (int i = 0; i < bullets.size(); i++)
+	{
+		if (bullets[i]->live)
+		{
+			bullets[i]->Update(elapsed);
+			bullets[i]->move_y(elapsed);
+		}
+	}
+
+	// CHECK COLLISIONS
+	bulletToEnemy();
+	checkPlayerCollision();
+}
+void GameApp::UpdateCutscene1(float elapsed)
+{
+	// CHANGE MUSIC & SETUP CUTSCENE VAR
+	if (stateSwitched)
+	{
+		setUpCutscene();
+		changeMusic(gameMusic);
+		stateSwitched = false;
+	}
+	
+	// CUTSCENE CONTROL
+	if (up)
+	{
+		level_y += elapsed * 10.0;
+		if (level_y >= 3.0)
+			up = false;
+	}
+	else if (!up && !down)
+	{
+		level_cd -= elapsed * 5.0;
+		if (level_cd <= 0.0)
+			down = true;
+	}
+	else
+	{
+		level_y -= elapsed * 10;
+		if (level_y <= -15.0)
+		{
+			state = LEVEL_1;
+			stateSwitched = true;
 		}
 	}
 }
@@ -94,6 +198,7 @@ bool GameApp::UpdateAndRender()
 
 	Update(elapsed);
 	Render();
+
 	return done;
 }
 
@@ -106,8 +211,14 @@ void GameApp::Render()
 	case MAIN_MENU:
 		RenderMainMenu();
 		break;
+	case CUTSCENE_1:
+		RenderCutScene1();
+		break;
 	case LEVEL_1:
 		RenderLevel1();
+		break;
+	case GAME_OVER:
+		RenderGameOver();
 		break;
 	}
 	SDL_GL_SwapWindow(displayWindow);
@@ -120,13 +231,228 @@ void GameApp::RenderMainMenu()
 	DrawText(fontID, "Space Shooter", 3.5, -1.5);
 
 	modelMatrix.identity();
-	modelMatrix.Translate(-7.0, -1.0, 0.0);
+	modelMatrix.Translate(-5.0, -1.0, 0.0);
 	program->setModelMatrix(modelMatrix);
-	DrawText(fontID, "Press Enter", 1.5, -0.0);
+	DrawText(fontID, "Press Enter", 1.5, -0.5);
+
+	modelMatrix.identity();
+	modelMatrix.Translate(-8.0, -3.0, 0.0);
+	program->setModelMatrix(modelMatrix);
+	DrawText(fontID, "Press ESC to quit", 1.5, -0.5);
+}
+void GameApp::RenderCutScene1()
+{
+	player->Render(program, modelMatrix);
+
+	modelMatrix.identity();
+	modelMatrix.Translate(level_x, level_y, 0.0);
+	program->setModelMatrix(modelMatrix);
+	DrawText(fontID, "Level 1", 3.5, -1.5);
 }
 void GameApp::RenderLevel1()
 {
 	player->Render(program, modelMatrix);
+	renderEnemies();
+	renderBullets();
+}
+void GameApp::RenderGameOver()
+{
+	modelMatrix.identity();
+	modelMatrix.Translate(-8.0, 3.0, 0.0);
+	program->setModelMatrix(modelMatrix);
+	DrawText(fontID, "Game Over", 3.5, -1.5);
+}
+void GameApp::RenderLevel1Complete()
+{
+	player->Render(program, modelMatrix);
+
+	modelMatrix.identity();
+	modelMatrix.Translate(level_x, level_y, 0.0);
+	program->setModelMatrix(modelMatrix);
+	DrawText(fontID, "Level 1 Complete", 3.5, -1.5);
+}
+
+// GAME TOOLS
+void GameApp::generatePlayer()
+{
+	player = new Entity(0.0, -7.0, 2.0, 2.0, playerID);
+	player->type = PLAYER;
+	player->vel_x = 0;
+	player->vel_y = 0;
+	player->acc_x = 0;
+	player->acc_y = 0;
+	player->shootCooldown = 0.0;
+}
+void GameApp::generateEnemies()
+{
+	for (int i = 0; i < 75; i++)
+	{
+		Entity* e = createAsteroid();
+		if (canBePlaced(e, level1Enemies))
+			level1Enemies.push_back(e);
+		else
+			--i;
+	}
+}
+Entity* GameApp::createAsteroid()
+{
+	srand(SDL_GetTicks());
+	float x = rand() % 21 - 10;
+	float xd = rand() % 100;
+	x += xd / 100.0;
+	float y = rand() % 101 + 10;
+	float yd = rand() % 100;
+	y += yd / 100.0;
+	float s = rand() % 3 + 1;
+	float sd = rand() % 100;
+	s += sd / 100.0;
+	Entity* e = new Entity(x, y, s, s, asteroidID);
+	e->type = ASTEROID;
+
+	float v = rand() % 3 + 1;
+	float vd = rand() % 100;
+	e->vel_y = -(v + vd / 100.0);
+
+	return e;
+}
+void GameApp::renderEnemies()
+{
+	for (int i = 0; i < level1Enemies.size(); i++)
+	{
+		if (level1Enemies[i]->alive)
+		{
+			level1Enemies[i]->Render(program, modelMatrix);
+		}
+	}
+}
+void GameApp::renderBullets()
+{
+	for (int i = 0; i < bullets.size(); i++)
+	{
+		if (bullets[i]->live)
+			bullets[i]->Render(program, modelMatrix);
+	}
+}
+bool GameApp::canBePlaced(Entity* e, std::vector<Entity*> v)
+{
+	for (int i = 0; i < v.size(); i++)
+	{
+		if (collides(e, v[i]))
+			return false;
+	}
+	return true;
+}
+bool GameApp::collides(Entity* e1, Entity* e2)
+{
+	if (!e1->alive || !e2->alive)
+		return false;
+	// CHECK TOP
+	if (e1->y + e1->height / 2.0 < e2->y - e2->height / 2.0 ||
+		// CHECK BOTTOM
+		e1->y - e1->height / 2.0 > e2->y + e2->height / 2.0 ||
+		//CHECK LEFT
+		e1->x - e1->width / 2.0 > e2->x + e2->width / 2.0 ||
+		// CHECK RIGHT
+		e1->x + e1->width / 2.0 < e2->x - e2->width / 2.0)
+		return false;
+
+	return true;
+}
+bool GameApp::bulletCollides(Entity* e, Bullet* b)
+{
+	if (!b->live)
+		false;
+	if (!e->alive)
+		return false;
+	// CHECK TOP
+	if (e->y + e->height / 2.0 < b->y - BULLET_HEIGHT / 2.0 ||
+		// CHECK BOTTOM
+		e->y - e->height / 2.0 > b->y + BULLET_HEIGHT / 2.0 ||
+		//CHECK LEFT
+		e->x - e->width / 2.0 > b->x + BULLET_WIDTH / 2.0 ||
+		// CHECK RIGHT
+		e->x + e->width / 2.0 < b->x - BULLET_WIDTH / 2.0)
+		return false;
+
+	return true;
+}
+void GameApp::bulletToEnemy()
+{
+	for (int i = 0; i < level1Enemies.size(); i++)
+	{
+		for (int j = 0; j < bullets.size(); j++)
+		{
+			if (bulletCollides(level1Enemies[i], bullets[j]))
+			{
+				// REMOVE BULLET
+				bullets[j]->live = false;
+
+				// REMOVE ASTEROID
+				level1Enemies[i]->alive = false;
+
+				Mix_PlayChannel(-1, explosionSound, 0);
+			}
+		}
+	}
+	cleanBullets();
+}
+void GameApp::cleanBullets()
+{
+	for (int i = 0; i < bullets.size(); i++)
+	{
+		if (!bullets[i]->live)
+		{
+			bullets.erase(bullets.begin() + i);
+			--i;
+		}
+	}
+}
+void GameApp::cleanEnemies()
+{
+	for (int i = 0; i < level1Enemies.size(); i++)
+	{
+		if (!level1Enemies[i]->alive)
+		{
+			level1Enemies.erase(level1Enemies.begin() + i);
+			--i;
+		}
+	}
+}
+bool GameApp::levelComplete()
+{
+	if (level1Enemies.size() == 0)
+		return true;
+	return false;
+}
+void GameApp::setUpCutscene()
+{
+	cutscene_done = false;
+	up = true;
+	down = false;
+}
+void GameApp::LoadCutsceneVar()
+{
+	level_x = -6.0;
+	level_y = -15.0;
+	level_cd = 3.0;
+}
+void GameApp::checkPlayerCollision()
+{
+	for (int i = 0; i < level1Enemies.size(); i++)
+	{
+		if (collides(player, level1Enemies[i]))
+		{
+			player->alive = false;
+			break;
+		}
+	}
+}
+void GameApp::checkGameOver()
+{
+	if (!player->alive)
+	{
+		state = GAME_OVER;
+	}
 }
 
 //	UTILITY
