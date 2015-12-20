@@ -9,7 +9,7 @@ Entity::~Entity()
 }
 
 // UPDATE
-void Entity::Update(float elapsed)
+void Entity::Update(float elapsed, Entity* e)
 {
 	vel_x = lerp(vel_x, 0.0, elapsed * 2.0);
 	vel_x += acc_x * elapsed;
@@ -21,6 +21,21 @@ void Entity::Update(float elapsed)
 			shootCooldown -= elapsed;
 		}
 	}
+	
+	else if (type == GRUNT)
+	{
+		if (distanceTo(e) <= 12.0)
+		{
+			moveTo_x(e->x);
+			move_x(elapsed);
+			willShoot = true;
+		}
+		if (shootCooldown > 0.0)
+		{
+			shootCooldown -= elapsed;
+		}
+	}
+	
 }
 
 // MOVEMENT
@@ -32,6 +47,16 @@ void Entity::move_y(float elapsed)
 {
 	y += vel_y * elapsed;
 }
+void Entity::moveTo_x(float goal)
+{
+	if (x <= goal + 0.5 && x >= goal - 0.5)
+		vel_x = 0.0;
+	else if (x > goal + 0.5)
+		vel_x = -3.0;
+	else
+		vel_x = 3.0;
+}
+
 
 // RENDER
 void Entity::Render(ShaderProgram *program, Matrix& modelMatrix)
@@ -71,19 +96,31 @@ void Entity::Render(ShaderProgram *program, Matrix& modelMatrix)
 // GAME TOOLS
 void Entity::expires()
 {
-	if (type == ASTEROID)
-		if (y <= -15.0)
-			alive = false;
+	if (y <= -15.0)
+		alive = false;
 }
 void Entity::shoot(std::vector<Bullet*>& v, GLuint id)
 {
 	Bullet* b = new Bullet(id);
 	b->x = x;
-	b->y = y + height / 2.0 + 0.1;
-	b->vel_y = 10.0;
+	if (type == PLAYER)
+	{
+		b->vel_y = 10.0;
+		b->y = y + height / 2.0 + 0.1;
+	}
+	else if (type == GRUNT)
+	{
+		b->vel_y = -10.0;
+		b->y = y - height / 2.0 + 0.1;
+	}
+
 	b->vel_x = 0.0;
 
 	v.push_back(b);
+}
+float Entity::distanceTo(Entity* e)
+{
+	return sqrt(pow(e->x - x, 2) + pow(e->y - y, 2));
 }
 
 

@@ -19,7 +19,7 @@
 #else
 #define RESOURCE_FOLDER "NYUCodebase.app/Contents/Resources/"
 #endif
-enum GameState {MAIN_MENU, LEVEL_1, CUTSCENE_1, LEVEL_2, LEVEL_3, GAME_OVER, GAME_WIN};
+enum GameState {MAIN_MENU, CUTSCENE_1, LEVEL_1, CUTSCENE_2, CUTSCENE_3, LEVEL_2, CUTSCENE_4, CUTSCENE_5, LEVEL_3, CUTSCENE_6, GAME_OVER, GAME_WIN};
 
 class GameApp
 {
@@ -33,25 +33,35 @@ public:
 	//	UPDATE
 	void ProcessEvents(float elapsed);
 	void Update(float elapsed);
+	void UpdateMainMenu();
 	void UpdateEnemies(float elapsed);
 	void UpdateLevel1(float elapsed);
 	void UpdateCutscene1(float elapsed);
+	void UpdateCutscene2(float elapsed);
+	void UpdateCutscene3(float elapsed);
+	void UpdateCutscene4(float elapsed);
+	void UpdateCutscene5(float elapsed);
+	void UpdateCutscene6(float elapsed);
 	bool UpdateAndRender();
 	
 	//	RENDER
 	void Render();
 	void RenderMainMenu();
-	void RenderLevel1();
-	void RenderLevel2();
-	void RenderLevel3();
+	void RenderGameLevel();
 	void RenderCutScene1();
-	void RenderLevel1Complete();
+	void RenderCutscene2();
+	void RenderCutscene3();
+	void RenderCutscene4();
+	void RenderCutscene5();
+	void RenderCutscene6();
 	void RenderGameOver();
+	void RenderGameWin();
 
 	//	GAME TOOLS
 	void generatePlayer();
 	void generateEnemies();
 	Entity* createAsteroid();
+	Entity* createGrunt();
 	void renderEnemies();
 	void renderBullets();
 	bool canBePlaced(Entity* e, std::vector<Entity*> v);
@@ -61,6 +71,7 @@ public:
 	void setUpCutscene();
 	void LoadCutsceneVar();
 	void checkGameOver();
+	bool at_x(Entity* e, float goal);
 
 	// COLLISION TOOLS
 	bool bulletCollides(Entity* e, Bullet* b);
@@ -96,6 +107,7 @@ public:
 	int playerID;
 	int asteroidID;
 	int laserID;
+	int gruntID;
 
 	// UTILITY
 	float lastFrameTicks;
@@ -112,6 +124,9 @@ public:
 	// CUTSCENE VARIABLES
 	float level_x;
 	float level_y;
+
+	float level_x2;
+	float level_y2;
 
 	float level_cd;
 	bool cutscene_done;

@@ -11,7 +11,7 @@
 #include <vector>
 #include "Bullet.h"
 
-enum Type { PLAYER, ASTEROID };
+enum Type { PLAYER, ASTEROID, GRUNT};
 
 class Entity
 {
@@ -20,11 +20,12 @@ public:
 	~Entity();
 
 	// UPDATE
-	void Update(float elapsed);
+	void Update(float elapsed, Entity* e = nullptr);
 
 	// MOVEMENT
 	void move_x(float elapsed);
 	void move_y(float elapsed);
+	void moveTo_x(float goal);
 
 	//	RENDER
 	void Render(ShaderProgram *program, Matrix& modelMatrix);
@@ -32,6 +33,7 @@ public:
 	// GAME TOOLS
 	void expires();
 	void shoot(std::vector<Bullet*>& v, GLuint id);
+	float distanceTo(Entity* e);
 
 	// UTILITY
 	float lerp(float v0, float v1, float t);
@@ -61,6 +63,7 @@ public:
 	// STATUS
 	Type type;
 	bool alive;
+	bool willShoot;
 
 	GLuint textureID;
 };

@@ -11,7 +11,9 @@ Bullet::~Bullet()
 // UPDATE
 void Bullet::Update(float elapsed)
 {
-	if (y >= 11)
+	if (y >= 11.0 && vel_y > 0.0)
+		live = false;
+	if (y <= -12 && vel_y < 0.0)
 		live = false;
 }
 
