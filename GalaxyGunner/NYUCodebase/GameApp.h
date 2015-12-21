@@ -116,6 +116,8 @@ public:
 	// MUSIC & SOUNDS
 	Mix_Music *menuMusic;
 	Mix_Music *gameMusic;
+	Mix_Music *victoryMusic;
+	Mix_Music *overMusic;
 
 	Mix_Chunk *explosionSound;
 	Mix_Chunk *laserSound;

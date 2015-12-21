@@ -12,6 +12,8 @@ GameApp::~GameApp()
 { 
 	Mix_FreeMusic(menuMusic);
 	Mix_FreeMusic(gameMusic);
+	Mix_FreeMusic(victoryMusic);
+	Mix_FreeMusic(overMusic);
 	SDL_Quit();
 }
 
@@ -66,6 +68,20 @@ void GameApp::Update(float elapsed)
 	case CUTSCENE_4:
 	case CUTSCENE_6:
 		UpdateLevelEnd(elapsed);
+		break;
+	case GAME_WIN:
+		if (stateSwitched)
+		{
+			Mix_PlayMusic(victoryMusic, 1);
+			stateSwitched = false;
+		}
+		break;
+	case GAME_OVER:
+		if (stateSwitched)
+		{
+			changeMusic(overMusic);
+			stateSwitched = false;
+		}
 		break;
 	}
 }
@@ -482,6 +498,8 @@ void GameApp::LoadMusicAndSounds()
 	// MUSIC
 	menuMusic = Mix_LoadMUS("title.mp3");
 	gameMusic = Mix_LoadMUS("corneria.mp3");
+	victoryMusic = Mix_LoadMUS("victory.mp3");
+	overMusic = Mix_LoadMUS("metroid.mp3");
 
 	// SOUNDS
 	laserSound = Mix_LoadWAV("laserSound.wav");
